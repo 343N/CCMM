@@ -16,19 +16,17 @@ import (
 )
 
 type LaunchFlags struct {
-	DataPath string
-	GamePath string
-	ModDir   string
-	ApiKey   string
-	UseJson  bool
+	DataPath  string
+	GamePath  string
+	ModDir    string
+	ApiKey    string
+	ApiUserId string
+	UseJson   bool
 }
 
 var MMApplication fyne.App
 var Flags LaunchFlags
 var logger = log.Default()
-
-func init() {
-}
 
 func main() {
 	Flags = parseFlags()
@@ -45,7 +43,7 @@ func startUI() {
 
 	wMain := MMApplication.NewWindow("MainWindow")
 	wMain.SetContent(container.NewVBox(
-		widget.NewLabel("Waiting for API Key..."),
+		widget.NewLabel("Waiting for API Details..."),
 	),
 	)
 
@@ -56,26 +54,29 @@ func startUI() {
 	key_chan := make(chan string)
 	wMain.SetMaster()
 
+	wMain.SetFixedSize(true)
 	wMain.Resize(fyne.Size{
-		Width:  600,
-		Height: 400,
+		Width:  1280,
+		Height: 720,
 	})
 	wMain.CenterOnScreen()
-	wMain.SetFixedSize(true)
 	wMain.SetTitle("CC Mod Manager")
 	wMain.Show()
 
 	wMain.Hide()
-	if Data.ApiKey == "" {
+	if Data.Api.Key == "" || Data.Api.UserId == "" {
 		logger.Printf("First run!")
-		AskForApiKey(key_chan)
+		AskForApiDetails(key_chan)
 		key := <-key_chan
-		logger.Printf("Grabbed key! Saving...")
-		GetMMData().ApiKey = key
+		uid := <-key_chan
+		logger.Printf("Grabbed API credentials! Saving...")
+		GetMMData().Api.Key = key
+		GetMMData().Api.UserId = uid
+
 		SaveMMData(Flags.DataPath)
 	}
 
-	if Data.GamePath == "" || Data.ModDir == "" {
+	if Data.ModDir == "" {
 		AskForModDir(key_chan)
 		dir := <-key_chan
 		logger.Printf("Set CC mod directory to %s", dir)
@@ -129,19 +130,11 @@ func getMainMenu() *fyne.MainMenu {
 	return fyne.NewMainMenu(mSettings)
 }
 
-func getInstalledTabUi() fyne.CanvasObject {
-	return widget.NewLabel("TODO")
-}
-
-func getBrowseTabUi() fyne.CanvasObject {
-	return widget.NewLabel("TODO")
-}
-
 func populateMainWindow(win fyne.Window) {
 
 	tabs := container.NewAppTabs(
-		container.NewTabItem("Installed mods", getInstalledTabUi()),
 		container.NewTabItem("Browse mods", getBrowseTabUi()),
+		container.NewTabItem("Installed mods", getInstalledTabUi()),
 	)
 
 	tabs.SetTabLocation(container.TabLocationTop)
@@ -150,24 +143,46 @@ func populateMainWindow(win fyne.Window) {
 
 }
 
-func AskForApiKey(done chan string) {
+func AskForApiDetails(done chan string) {
 
 	APIKeyPagePath, _ := url.Parse("https://mod.io/me/access")
 
-	w := MMApplication.NewWindow("API Key")
-	l1 := widget.NewLabel("In order to use this application you need a mod.io API key")
+	w := MMApplication.NewWindow("API Details")
+	l1 := widget.NewLabel("In order to use this application you need to retrieve your mod.io API key and user ID")
 
-	l2 := widget.NewHyperlink("Mod.io API Key page", APIKeyPagePath)
+	l2 := widget.NewHyperlink("Mod.io API details page", APIKeyPagePath)
 	in := widget.NewEntry()
+	in2 := widget.NewEntry()
 	in.SetPlaceHolder("API Key")
+	in.Password = true
+	in2.SetPlaceHolder("API User ID")
 	key := ""
+	userid := ""
+
 	sub := widget.NewButton("Submit", func() {
 		key = strings.TrimSpace(in.Text)
+		userid = strings.TrimSpace(in2.Text)
+		if userid == "" || key == "" {
+			return
+		}
 		w.Close()
 	})
+	sub.Disable()
+
+	buttonEnabler := func(s string) {
+		if strings.TrimSpace(in.Text) != "" &&
+			strings.TrimSpace(in2.Text) != "" {
+			sub.Enable()
+		} else {
+			sub.Disable()
+		}
+	}
+
+	in.OnChanged = buttonEnabler
+	in2.OnChanged = buttonEnabler
 
 	cont := container.NewVBox(
-		l1, l2, in, sub,
+		l1, l2, in, in2, sub,
 	)
 
 	w.SetContent(cont)
@@ -175,6 +190,7 @@ func AskForApiKey(done chan string) {
 
 	w.SetOnClosed(func() {
 		done <- key
+		done <- userid
 	})
 }
 
@@ -192,11 +208,12 @@ func fileExists(filename string) bool {
 
 func parseFlags() LaunchFlags {
 	f := LaunchFlags{
-		DataPath: *flag.String("d", "mm.dat", "override the default data file path"),
-		GamePath: *flag.String("g", "", "override the set game directory path"),
-		ModDir:   *flag.String("m", "", "override the mod dir path (will use gamepth mod dir if unspecified)"),
-		ApiKey:   *flag.String("a", "", "override the api key"),
-		UseJson:  *flag.Bool("json", false, "uses json instead of gob"),
+		DataPath:  *flag.String("d", "mm.dat", "override the default data file path"),
+		GamePath:  *flag.String("g", "", "override the set game directory path"),
+		ModDir:    *flag.String("m", "", "override the mod dir path (will use gamepth mod dir if unspecified)"),
+		ApiKey:    *flag.String("api_key", "", "override the api key"),
+		ApiUserId: *flag.String("api_uid", "", "override the api userid"),
+		UseJson:   *flag.Bool("json", false, "uses json instead of gob"),
 	}
 
 	flag.Parse()

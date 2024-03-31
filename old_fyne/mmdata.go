@@ -9,17 +9,28 @@ import (
 type MMData struct {
 	GamePath   string
 	ModDir     string
-	ApiKey     string
-	LoadedMods []ModData
+	Api        ApiCredentials
+	LoadedMods []MMModData
 }
 
-type ModData struct {
-	Name       string
-	Version    string
-	Id         string
-	FolderName string
-	Thumbnail  []byte
-	Downloaded bool
+type ApiCredentials struct {
+	Key    string
+	UserId string
+}
+
+type MMModData struct {
+	Name        string
+	Author      string
+	ModVersion  string
+	GameVersion string
+	Id          int64
+	FolderName  string
+	FileName    string
+	FileSize    int
+	ThumbData   []byte
+	ThumbUrl    string
+	DownloadUrl string
+	Downloaded  bool
 }
 
 var Data *MMData = &MMData{}
@@ -56,6 +67,7 @@ func SaveMMData(filepath string) error {
 
 	if err != nil {
 		logger.Printf("Failed to save data!")
+		logger.Printf("Error: %v", err)
 		return err
 	}
 
