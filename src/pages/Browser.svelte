@@ -8,14 +8,15 @@
   export let visible = true
 
   $: has_config = false;
+  let apiKey
+  let apiUserId
+  let ccModPath
 
   let checkHasConfig = async () => {
-    let apiKey = await AppStore.get("apiKey")
-    let apiUserId = await AppStore.get("apiUserId")
-    let ccModPath = await AppStore.get("ccModPath")
-    has_config = apiKey && apiUserId && ccModPath
-
-    
+    apiKey = await AppStore.get("apiKey")
+    apiUserId = await AppStore.get("apiUserId")
+    ccModPath = await AppStore.get("ccModPath")
+    has_config = apiKey && apiUserId && ccModPath    
   }
   checkHasConfig()
 
@@ -29,7 +30,7 @@
       {#if !has_config}
       You need to fill out your settings!
       {:else}
-      <RemoteModBrowser/>
+      <RemoteModBrowser {apiKey} {apiUserId} {ccModPath}/>
       {/if}
 
     </TabItem>
@@ -37,7 +38,7 @@
       {#if !has_config}
       You need to fill out your settings!
       {:else}
-      <RemoteModBrowser/>
+      <!-- <RemoteModBrowser/> -->
       {/if}
 
     </TabItem>
