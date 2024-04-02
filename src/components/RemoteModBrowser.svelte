@@ -14,6 +14,8 @@
     modList = json.data
   }
 
+  getMods()
+
 </script>
 <div>
   <h1>Mod List</h1>

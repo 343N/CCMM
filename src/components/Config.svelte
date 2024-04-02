@@ -1,7 +1,7 @@
 <script> 
   import { Input, Label, A, Helper, Button} from 'flowbite-svelte'
   import {open as openShell} from '@tauri-apps/api/shell'
-  import {open as openDialog} from '@tauri-apps/api/dialog' 
+  import {open as openDialog} from '@tauri-apps/plugin-dialog' 
   import { AppStore } from "../AppStore"
   import { createEventDispatcher } from 'svelte';
   
@@ -10,8 +10,6 @@
   export let ccModPath = ""
  
   export let visible = true
-
-  export let save = ()=>{}
 
   const dispatch = createEventDispatcher()
 
@@ -23,10 +21,7 @@
   $: modsPickerLabel = "No folder chosen."
 
   let setModsFolder = async (e) => {
-    e.preventDefault()
     let selected = (await openDialog({directory: true}))
-    
-    // @ts-ignore
     modsPickerLabel = selected || "No folder chosen."
     console.log(selected)
   }
@@ -44,11 +39,20 @@
       })
   }
 
+  let loadConfig = async (e) => {
+    apiKey = await AppStore.get("apiKey") || ""
+    apiUserId = await AppStore.get("apiUserId") || ""
+    ccModPath = await AppStore.get("ccModPath") || ""
+    modsPickerLabel = ccModPath || modsPickerLabel
+  }
+
+  
+
 </script>
 
 {#if visible}
 
-<div id="configContainer">
+<div id="configContainer" use:loadConfig>
 
   <div id="optionsContainer">
   <p>In order to use CCMM, you need to grab your API details for mod.io</p>
@@ -58,19 +62,19 @@
     <div>
       <Label for="api_key">Mod.io API Key
       </Label>
-      <Input type="password" id="api_key" bind:apiKey required />
+      <Input type="password" id="api_key" bind:value={apiKey} required />
     </div>
     <div>
       <Label for="api_userid">API User ID
       </Label>  
-      <Input type="text" id="api_userid" bind:apiUserId required />
+      <Input type="text" id="api_userid" bind:value={apiUserId} required />
     </div>
   </div>
   <div>
     <Label for="api_key">Mod Directory
       <Helper>Example: C:\Games\Cortex Command\Mods</Helper>
     </Label>
-    <Button id="configModsFolderPicker" webkitdirectory on:click={setModsFolder}>Choose Folder</Button>
+    <Button id="configModsFolderPicker" on:click={setModsFolder}>Choose Folder</Button>
     <Label>Folder: {modsPickerLabel}</Label>
   </div>
 </div>

@@ -1,4 +1,6 @@
 <script>
+
+
   import { Tabs, TabItem } from 'flowbite-svelte'
   import { AppStore } from '../AppStore.js'
   import '../components/Config.svelte'
@@ -8,6 +10,7 @@
   export let visible = true
 
   $: has_config = false;
+
   let apiKey
   let apiUserId
   let ccModPath
@@ -16,6 +19,7 @@
     apiKey = await AppStore.get("apiKey")
     apiUserId = await AppStore.get("apiUserId")
     ccModPath = await AppStore.get("ccModPath")
+    console.log(`Checking config! '${apiKey}', '${apiUserId}', '${ccModPath}'`)
     has_config = apiKey && apiUserId && ccModPath    
   }
   checkHasConfig()
@@ -38,6 +42,7 @@
       {#if !has_config}
       You need to fill out your settings!
       {:else}
+      TODO: add a browser lel
       <!-- <RemoteModBrowser/> -->
       {/if}
 
@@ -51,10 +56,6 @@
 
 
 <style>
-  /* .tabFixes {
-    /* align-items: center; */
-    /* flex-wrap: nowrap !important; */
-  /* } */
   div {
     padding: 1rem;
   }
