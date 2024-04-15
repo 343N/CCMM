@@ -1,8 +1,8 @@
 <script> 
   import { Input, Label, A, Helper, Button} from 'flowbite-svelte'
   import {open as openShell} from '@tauri-apps/api/shell'
-  import {open as openDialog} from '@tauri-apps/plugin-dialog' 
-  import { AppStore } from "../AppStore"
+  import {open as openDialog} from '@tauri-apps/api/dialog' 
+  import { AppStore } from "../lib/AppStore"
   import { createEventDispatcher } from 'svelte';
   
   export let apiKey = ""
@@ -21,8 +21,9 @@
   $: modsPickerLabel = "No folder chosen."
 
   let setModsFolder = async (e) => {
-    let selected = (await openDialog({directory: true}))
+    let selected = (await openDialog({directory: true, defaultPath: ""}))
     modsPickerLabel = selected || "No folder chosen."
+    ccModPath = selected
     console.log(selected)
   }
 

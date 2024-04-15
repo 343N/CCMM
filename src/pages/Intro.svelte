@@ -8,7 +8,7 @@
 
   let logoPath = "logo-256.png"
   let audioSrc = "intro.mp3"
-  let audioVol = 0.01
+  let audioVol = 0.0
 
   
 
@@ -18,7 +18,7 @@
     setTimeout(()=>{
       console.log(eAudio)
       console.log("Loaded!")
-      eAudio.volume = 0.02
+      eAudio.volume = audioVol
       eAudio.play()
       eAudio.addEventListener("play", ()=> {
         container.style.opacity = 1

@@ -2,10 +2,11 @@
 
 
   import { Tabs, TabItem } from 'flowbite-svelte'
-  import { AppStore } from '../AppStore.js'
+  import { AppStore } from '../lib/AppStore.js'
   import '../components/Config.svelte'
   import Config from '../components/Config.svelte';
   import RemoteModBrowser from '../components/RemoteModBrowser.svelte';
+  import LocalModBrowser from '../components/LocalModBrowser.svelte';
 
   export let visible = true
 
@@ -42,7 +43,7 @@
       {#if !has_config}
       You need to fill out your settings!
       {:else}
-      TODO: add a browser lel
+      <LocalModBrowser></LocalModBrowser>
       <!-- <RemoteModBrowser/> -->
       {/if}
 
